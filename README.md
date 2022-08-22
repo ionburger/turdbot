@@ -1,2 +1,2 @@
 # turdbot
-A all purpose discord bot written in discord.py
+An all purpose discord bot written in discord.py
