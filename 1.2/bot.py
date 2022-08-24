@@ -5,14 +5,14 @@ import random
 client = discord.Client()
 avgtimelst = []
 
+
 #loading config files
 botconf = configparser.ConfigParser()
 botconf.read("bot.conf")
 triggerbotconf = configparser.ConfigParser()
 triggerbotconf.read("triggerbot.conf")
 quotebotconf = configparser.ConfigParser()
-quotebotconf.read("quotebot.config")
-
+quotebotconf.read("quotebot.conf")
 
 
 #bot info
@@ -50,7 +50,7 @@ async def on_message(message):
         elif triggers[b] in msg:
             print("balls")
             found = "true"
-            await message.channel.send("hello")
+            await message.channel.send(triggerbotconfig["replys"][""])
         else:
             print("something happened")
         
@@ -67,5 +67,4 @@ async def on_message(message):
     print("\n end client.event \n time: " + str(reventime) + "\n average time: " + avgtime)
 
 
-
-client.run('OTg2NDA4MjM3Njg5NjMwNzYx.GZZchW.Aymv6QYXFPcvrT6YqBmJIhB_HKWZK1UOEKeIVo')
+client.run(botconf["config"]["token"])
