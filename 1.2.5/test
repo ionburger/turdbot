@@ -1,0 +1,10 @@
+import schedule
+import time
+def test():
+    print("deez")
+schedule.every(1).minutes.do(test)
+while 1 == 1:
+    print("joe")
+    time.sleep(5)
+    schedule.run_pending()
+
