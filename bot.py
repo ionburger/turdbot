@@ -1,9 +1,10 @@
 import discord
-import time
 import datetime
+import time
 import configparser
 import random
 from discord.ext import tasks, commands
+quotetime = datetime.time.fromisoformat("02:25:01")
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 avgtimelst = []
@@ -81,7 +82,7 @@ async def on_message(message):
     print("\n end client.event \n time: " + str(reventime) + "\n average time: " + avgtime)
 
 
-@tasks.loop(seconds=5,reconnect=True)
+@tasks.loop(time=quotetime,reconnect=True)
 async def dailyquote():
     if quotebotconf["config"]["enabled"] == "true":
         file = open("data/quotes.var","r+")
@@ -89,9 +90,9 @@ async def dailyquote():
         rand = random.randint(0, (len(list)-1))
         print(rand)
         channel = client.get_channel(int(quotebotconf["config"]["dailyquote"]))
-        await channel.send(list[rand])
-        list.remove(rand)
-        file.write(list)
+        await channel.send(list.pop(rand))
+        file.write(":".join(list))
+        file.close()
 
 
 client.run(botconf["config"]["token"])
