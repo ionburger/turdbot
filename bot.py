@@ -1,10 +1,11 @@
 import discord
+import backports.zoneinfo as zoneinfo
 import datetime
 import time
 import configparser
 import random
 from discord.ext import tasks, commands
-quotetime = datetime.time.fromisoformat("02:25:01")
+quotetime = datetime.time(hour=12,tzinfo=zoneinfo.ZoneInfo("MST"))
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 avgtimelst = []
