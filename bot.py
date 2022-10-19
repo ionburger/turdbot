@@ -1,16 +1,15 @@
+#imports
 import discord
+import random
+import configparser
 import backports.zoneinfo as zoneinfo
 import datetime
-import time
-import configparser
-import random
+from datetime import time
 from discord.ext import tasks, commands
+
+
+#glob vars
 quotetime = datetime.time(hour=12,tzinfo=zoneinfo.ZoneInfo("MST"))
-intents = discord.Intents.all()
-client = discord.Client(intents=intents)
-avgtimelst = []
-print("discord.py version")
-print(discord.__version__)
 
 
 #loading config files
@@ -23,15 +22,23 @@ quotebotconf.read("config/quotebot.conf")
 
 
 #bot info
-@client.event
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('We have logged in as {0.user}'.format(bot))
     if not dailyquote.is_running():
         dailyquote.start()
+print("discord.py version")
+print(discord.__version__)
+
+
+@bot.command()
+async def foo(ctx):
+    for guild in bot.guilds:
+        await ctx.send(guild.id)
 
 
 #main event
-@client.event
+@bot.event
 async def on_message(message):
     #defining variables
     msg = str(message.content)
@@ -74,8 +81,13 @@ async def on_message(message):
         file.write(":")
         file.close()
 
+    #bot commands
+    await bot.process_commands(message)
+
 
     #end function timer
+    global avgtimelst
+    avgtimelst = []
     end = time.time()
     reventime = str(round((end - start),3))
     avgtimelst.append(float(reventime))
@@ -90,10 +102,12 @@ async def dailyquote():
         list = file.read().split(":")
         rand = random.randint(0, (len(list)-1))
         print(rand)
-        channel = client.get_channel(int(quotebotconf["config"]["dailyquote"]))
+        channel = bot.get_channel(int(quotebotconf["config"]["dailyquote"]))
         await channel.send(list.pop(rand))
         file.write(":".join(list))
         file.close()
 
 
-client.run(botconf["config"]["token"])
+intents = discord.Intents.all()
+bot = commands.Bot(intents=intents,command_prefix=".")
+bot.run(botconf["config"]["token"])
