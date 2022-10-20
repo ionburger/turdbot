@@ -1,25 +1,45 @@
 #imports
 import discord
+import shelve
 import random
 import configparser
 import backports.zoneinfo as zoneinfo
 import datetime
-from datetime import time
 from discord.ext import tasks, commands
 
 
-#glob vars
 quotetime = datetime.time(hour=12,tzinfo=zoneinfo.ZoneInfo("MST"))
+server = "global"
+avgtimelst = []
+
+token = open("TOKEN","r").read()
+intents = discord.Intents.all()
+bot = commands.Bot(intents=intents,command_prefix=".")
 
 
 #loading config files
-botconf = configparser.ConfigParser()
-botconf.read("config/bot.conf")
-triggerbotconf = configparser.ConfigParser()
-triggerbotconf.read("config/triggerbot.conf")
-quotebotconf = configparser.ConfigParser()
-quotebotconf.read("config/quotebot.conf")
-
+def config(value,db="config",serverid=server,mode="r"):
+    global = {
+        "replytobot":"false",
+        "triggerbotenabled":"true",
+        "quotebotenabled":"true",
+        "triggerbottriggers":["hello","hi","howdy"],
+        "quotequeue":"1010042640508669982",
+        
+        
+    }
+    data = shelve.open("bot.shlf",writeback=True)
+    if mode == "r":
+        try:
+            return data[db][serverid][value]
+        except:
+            return global[value]
+    elif mode == "w":
+        data[db][serverid] = value
+        return("success")
+    else:
+        print("error")
+    data.close()
 
 #bot info
 @bot.event
@@ -43,31 +63,31 @@ async def on_message(message):
     #defining variables
     msg = str(message.content)
     channel = str(message.channel.id)
+    server = message.guild.id
     author = str(message.author)
     
 
     #reply to bots
-    if message.author.bot and botconf["config"]["replytobot"] == "false": 
+    if message.author.bot and config("replytobot") == "false": 
         return
 
 
     #start event timer
     print("\n start client.event")
-    start = time.time()
+    start = datetime.datetime.now()
 
 
     #triggerbot
-    if triggerbotconf["config"]["enabled"] == "true":
+    if config("triggerbotenabled") == "true":
         x = 0
         found = "false"
-        triggersstr = (triggerbotconf["config"]["triggers"])
-        triggers = triggersstr.split(",")
+        triggers = config("triggerbottriggers",db="data")
         while x < len(triggers) and found == "false": 
             if triggers[x] not in msg:
                 x = x+1
             elif triggers[x] in msg:
                 found = "true"
-                replys = triggerbotconf["replys"][triggers[x]].split(",")
+                replys = config(triggerbotreplys,db=data)
                 rand = random.randint(0,len(replys))-1
                 await message.channel.send(replys[rand])
             else:
@@ -75,7 +95,7 @@ async def on_message(message):
         
 
     #daily quote
-    if channel == quotebotconf["config"]["quotequeue"] and quotebotconf["config"]["enabled"] == "true":
+    if channel == config("quotequeue") and config("quotebotenabled") == "true":
         file = open("data/quotes.var","a")
         file.write(msg)
         file.write(":")
@@ -86,18 +106,17 @@ async def on_message(message):
 
 
     #end function timer
-    global avgtimelst
-    avgtimelst = []
-    end = time.time()
-    reventime = str(round((end - start),3))
-    avgtimelst.append(float(reventime))
-    avgtime = str(sum(avgtimelst) / len(avgtimelst))
-    print("\n end client.event \n time: " + str(reventime) + "\n average time: " + avgtime)
+    end = datetime.datetime.now()
+    eventime = (end - start)
+    microseconds = eventime.microseconds
+    avgtimelst.append(microseconds)
+    avgtime = sum(avgtimelst) / len(avgtimelst)
+    print("\n end client.event \n microseconds: " + str(microseconds) + "\n average time: " + str(avgtime))
 
 
 @tasks.loop(time=quotetime,reconnect=True)
 async def dailyquote():
-    if quotebotconf["config"]["enabled"] == "true":
+    if config("quotebotenabled") == "true":
         file = open("data/quotes.var","r+")
         list = file.read().split(":")
         rand = random.randint(0, (len(list)-1))
@@ -108,6 +127,4 @@ async def dailyquote():
         file.close()
 
 
-intents = discord.Intents.all()
-bot = commands.Bot(intents=intents,command_prefix=".")
-bot.run(botconf["config"]["token"])
+bot.run(token)
