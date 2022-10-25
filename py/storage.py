@@ -3,6 +3,7 @@
 #
 # This source code is licensed under the GPLv3 license. A copy of this license can be found in the LICENSE file in the root directory of this source tree.
 
+import shelve
 server = "default"
 def config(value,db="config",serverid=server,mode="r"):
     default = {

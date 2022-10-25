@@ -6,11 +6,11 @@
 import discord
 import random
 import datetime
-import shelve
 import datetime
 import shelve
 import backports.zoneinfo as zoneinfo
 from py.storage import config
+from discord import app_commands
 from discord.ext import tasks, commands
 
 
@@ -22,17 +22,18 @@ intents = discord.Intents.all()
 bot = commands.Bot(intents=intents, command_prefix=".")
 
 
-# bot info
+# on ready
 @bot.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
     if not dailyquote.is_running():
         dailyquote.start()
+    print(bot.tree)
 print("discord.py version")
 print(discord.__version__)
 
 
-@bot.command()
+@bot.hybrid_command(name="eee", with_app_command=True)
 async def foo(ctx):
     for guild in bot.guilds:
         await ctx.send(guild.id)
