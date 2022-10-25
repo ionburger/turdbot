@@ -1,1 +1,1 @@
-print("hi")
+if open("VERSION") !=
