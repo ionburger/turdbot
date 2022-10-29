@@ -1,1 +1,2 @@
-if open("VERSION") !=
+from version import version
+print(version())
