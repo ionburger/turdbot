@@ -4,11 +4,10 @@ import sys
 import os
 import configparser
 import wget
-import sysrsync
 import shutil
 
 #funky stuff to deal with relative file paths
-dir = os.getcwd()
+randir = os.getcwd()
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 config = configparser.ConfigParser()
@@ -16,16 +15,22 @@ config.read("config.conf")
 if config["config"]["autoupdate"] == "true":
     versionl = version.local()
     versionr = version.remote()
+    print(versionr.join("."))
 
 #updater
-if versionl < versionr:
-    print("outdated version detected\n",versionl," < ",versionr)
+if ".".join(versionl)<".".join(versionr):
+    print("outdated version",versionl,"<",versionr)
     if config["config"]["autoupdate"] == "true":
         print("autoupdate is enabled, attempting to update")
-        wget.download("https://github.com/ionburger/turdbot/archive/refs/tags/"+versionr+".zip",out = "turdbot.zip")
-        shutil.unpack_archive("turdbot.zip","turdbot")      
-        sysrsync.run(source="turdbot/turdbot-"+versionr+"/py/*.py",destination="*.py")  
-        os.chdir(dir)
+        wget.download("https://github.com/ionburger/turdbot/archive/refs/tags/"+versionr+".zip",out = "turdbottmp.zip")
+        shutil.unpack_archive("turdbottmp.zip","turdbottmp")
+        for file in os.listdir("turdbottmp/turdbot-"+versionr+"/py/"):
+            if file.endswith(".py"):
+                shutil.move("turdbottmp/turdbot-"+versionr+"/py/"+file,file)
+        with open("VERSION","w") as file:
+            file.write(versionr)
+
+        os.chdir(randir)
         os.execl(sys.executable, sys.executable, *sys.argv)
 else:
-    print("running latest version of turdbot ",versionl)
+    print("running latest version of turdbot",versionl)
