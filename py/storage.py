@@ -15,16 +15,14 @@ def config(value,db="config",serverid=server,mode="r"):
         
         
     }
-    data = shelve.open("bot.shlf",writeback=True)
-    if mode == "r":
-        try:
-            return data[db][serverid][value]
-        except:
-            return default[value]
-    elif mode == "w":
-        data[db][serverid] = value
-        return("success")
-    else:
-        print("error")
-    data.close()
-
+    with shelve.open("bot.shlf",writeback=True) as data:
+        if mode == "r":
+            try:
+                return data[db][serverid][value]
+            except:
+                return default[value]
+        elif mode == "w":
+            data[db][serverid] = value
+            return("success")
+        else:
+            print("error")

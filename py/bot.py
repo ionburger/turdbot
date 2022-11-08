@@ -1,5 +1,6 @@
 #imports
 import version
+import main
 import sys
 import os
 import configparser
@@ -32,3 +33,7 @@ if config["config"]["autoupdate"] == "true":
             os.execl(sys.executable, sys.executable, *sys.argv)
     else:
         print("running latest version of turdbot",versionl)
+else:
+    print("autoupdate disabled")
+
+main.run()
