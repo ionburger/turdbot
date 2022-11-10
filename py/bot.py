@@ -1,6 +1,6 @@
 #imports
-import version
-import main
+import bin.version as version
+import modules.main as main
 import sys
 import os
 import configparser
@@ -10,9 +10,9 @@ import shutil
 #funky stuff to deal with relative file paths
 randir = os.getcwd()
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
+update = False
 config = configparser.ConfigParser()
-config.read("config.conf")
+config.read("config/config.conf")
 if config["config"]["autoupdate"] == "true":
     versionl = version.local()
     versionr = version.remote()
@@ -31,9 +31,10 @@ if config["config"]["autoupdate"] == "true":
             os.remove("turdbottmp.zip")
             os.chdir(randir)
             os.execl(sys.executable, sys.executable, *sys.argv)
+            update = True
     else:
         print("running latest version of turdbot",versionl)
 else:
     print("autoupdate disabled")
 
-main.run()
+main.run(update)
