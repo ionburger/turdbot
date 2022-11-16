@@ -2,6 +2,7 @@
 # All rights reserved.
 #
 # This source code is licensed under the GPLv3 license. A copy of this license can be found in the LICENSE file in the root directory of this source tree.
+import asyncio
 import logging
 import yt_dlp
 import random
@@ -13,13 +14,13 @@ from bin.storage import config
 import bin.version as version
 import discord
 from discord.ext import tasks, bridge as commands
+logging.basicConfig(level=logging.INFO)
 
 
 def run(update):
 
     quotetime = datetime.time(hour=12, tzinfo=zoneinfo.ZoneInfo("MST"))
     avgtimelst = []
-    connections = {}
 
     token = open("config/TOKEN", "r").read()
     intents = discord.Intents.all()
@@ -32,20 +33,16 @@ def run(update):
         print('logged in as {0.user}'.format(bot))
         print("discord.py version",discord.__version__)
         print("turdbot version",version.local())
-        if update:
-            await bot.tree.sync()
 
         if not dailyquote.is_running():
             dailyquote.start()
 
     async def once_done(sink: discord.sinks, channel: discord.TextChannel, *args):  # Our voice client already passes these in.
         recorded_users = [  # A list of recorded users
-        f"<@{user_id}>"
-        for user_id, audio in sink.audio_data.items()
+            f"<@{user_id}>"
+            for user_id, audio in sink.audio_data.items()
         ]
-        await sink.vc.disconnect()  # Disconnect from the voice channel.
         files = [discord.File(audio.file, f"{user_id}.{sink.encoding}") for user_id, audio in sink.audio_data.items()]  # List down the files.
-        await channel.send(f"finished recording audio for: {', '.join(recorded_users)}.", files=files)  # Send a message with the accumulated files.
 
 
 
@@ -54,14 +51,10 @@ def run(update):
     async def eee(ctx):
         for guild in bot.guilds:
             await ctx.respond(guild.id)
-    #@bot.bridge_command(description="aaa",name="eee")
-    #async def eeedot(ctx):
-     #   for guild in bot.guilds:
-      #      await ctx.send(guild.id)
+
     @bot.bridge_command(name="play")
-    async def play(ctx, argument: str):
+    async def play(ctx, link: str):
             channel = ctx.author.voice.channel
-            print(argument)
             vc = await channel.connect()
             ytdl_format_options = {
             'format': 'bestaudio/best',
@@ -77,15 +70,12 @@ def run(update):
             'source_address': '0.0.0.0',
             }
             with yt_dlp.YoutubeDL(ytdl_format_options) as ydl:
-                    info_dict = ydl.extract_info(argument, download=False)
+                    info_dict = ydl.extract_info(link, download=False)
                     video_url = info_dict.get("url", None)
                     video_id = info_dict.get("id", None)
                     video_title = info_dict.get('title', None)
-
             vc.play(discord.FFmpegPCMAudio(video_url))
-            vc.start_recording(discord.sinks.WaveSink(),once_done,ctx.channel)
 
-    # main event
     @bot.event
     async def on_message(message):
         # defining variables
