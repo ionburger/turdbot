@@ -3,12 +3,16 @@
 #
 # This source code is licensed under the GPLv3 license. A copy of this license can be found in the LICENSE file in the root directory of this source tree.
 import asyncio
+from discord.sinks import WaveSink as PycordWaveSink, Filters, AudioData
+import speech_recognition as sr
+r = sr.Recognizer()
+
 import logging
 import yt_dlp
 import random
 import datetime
-import datetime
-import shelve
+import wave
+import io
 import backports.zoneinfo as zoneinfo
 from bin.storage import config
 import bin.version as version
@@ -31,7 +35,7 @@ def run(update):
     @bot.event
     async def on_ready():
         print('logged in as {0.user}'.format(bot))
-        print("discord.py version",discord.__version__)
+        print("pycord version",discord.__version__)
         print("turdbot version",version.local())
 
         if not dailyquote.is_running():
@@ -43,6 +47,34 @@ def run(update):
             for user_id, audio in sink.audio_data.items()
         ]
         files = [discord.File(audio.file, f"{user_id}.{sink.encoding}") for user_id, audio in sink.audio_data.items()]  # List down the files.
+        with wave.open("test.wav","wb") as w:
+            w.setnchannels(2)
+            w.setsampwidth(2)
+            w.setframerate(48000)
+            w.writeframes(b"".join([audio.file.read() for audio in sink.audio_data.values()]))
+    class WaveSink(PycordWaveSink): 
+    
+        @Filters.container  
+        def write(self, data, user):  
+            if user not in self.audio_data:
+                file = io.BytesIO()
+                self.audio_data.update({user: AudioData(file)})
+
+            file = self.audio_data[user] 
+            file.write(data)     
+            print(data)
+            print(type(data),"data")
+            print(type(file),"file")
+            beez = 
+            with wave.open(beez,"wb") as w:
+                w.setnchannels(2)
+                w.setsampwidth(2)
+                w.setframerate(48000)
+                w.writeframes(data)
+            with sr.AudioFile(data) as source:
+                audio_data = r.record(source)
+                text = r.recognize_google(audio_data)
+                print(text)
 
 
 
@@ -75,7 +107,11 @@ def run(update):
                     video_id = info_dict.get("id", None)
                     video_title = info_dict.get('title', None)
             vc.play(discord.FFmpegPCMAudio(video_url))
-
+            vc.start_recording(WaveSink(), once_done, ctx.channel)
+            #vc.start_recording(discord.sinks.WaveSink(), once_done, ctx.channel)
+            await asyncio.sleep(10)
+            vc.stop_recording()
+            await vc.disconnect()
     @bot.event
     async def on_message(message):
         # defining variables
