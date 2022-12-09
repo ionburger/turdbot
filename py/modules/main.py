@@ -3,7 +3,8 @@
 #
 # This source code is licensed under the GPLv3 license. A copy of this license can be found in the LICENSE file in the root directory of this source tree.
 import asyncio
-from discord.sinks import WaveSink as PycordWaveSink, Filters, AudioData
+#from discord.sinks import WaveSink as PycordWaveSink, Filters, AudioData
+from discord.sinks import Filters, AudioData
 import speech_recognition as sr
 r = sr.Recognizer()
 
@@ -17,7 +18,7 @@ import backports.zoneinfo as zoneinfo
 from bin.storage import config
 import bin.version as version
 import discord
-from discord.ext import tasks, bridge as commands
+from discord.ext import tasks, bridge
 logging.basicConfig(level=logging.INFO)
 
 
@@ -28,8 +29,7 @@ def run(update):
 
     token = open("config/TOKEN", "r").read()
     intents = discord.Intents.all()
-    bot = commands.Bot(intents=intents, command_prefix=".")
-
+    bot = bridge.Bot(intents=intents, command_prefix=".")
 
     # on ready
     @bot.event
@@ -52,7 +52,7 @@ def run(update):
             w.setsampwidth(2)
             w.setframerate(48000)
             w.writeframes(b"".join([audio.file.read() for audio in sink.audio_data.values()]))
-    class WaveSink(PycordWaveSink): 
+    class WaveSink(discord.sinks.WaveSink): 
     
         @Filters.container  
         def write(self, data, user):  
@@ -61,30 +61,18 @@ def run(update):
                 self.audio_data.update({user: AudioData(file)})
 
             file = self.audio_data[user] 
-            file.write(data)     
+            file.write(data)
             print(data)
             print(type(data),"data")
             print(type(file),"file")
-            beez = 
-            with wave.open(beez,"wb") as w:
-                w.setnchannels(2)
-                w.setsampwidth(2)
-                w.setframerate(48000)
-                w.writeframes(data)
-            with sr.AudioFile(data) as source:
-                audio_data = r.record(source)
-                text = r.recognize_google(audio_data)
-                print(text)
+            
 
-
-
-
-    @bot.bridge_command(description="aaa")
+    @bot.slash_command(description="aaa")
     async def eee(ctx):
         for guild in bot.guilds:
             await ctx.respond(guild.id)
 
-    @bot.bridge_command(name="play")
+    @bot.slash_command(name="play")
     async def play(ctx, link: str):
             channel = ctx.author.voice.channel
             vc = await channel.connect()
