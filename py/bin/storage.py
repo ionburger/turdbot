@@ -10,6 +10,8 @@ def config(value,db="config",serverid=server,mode="r"):
         "replytobot":"false",
         "triggerbotenabled":"true",
         "quotebotenabled":"true",
+        "countingenabled":"true",
+        "countingchannel":"1052690164989829150",
         "triggerbottriggers":["hello","hi","howdy"],
         "triggerbotreplys":["hello","hi","lol"],
         "quotequeue":"1010042640508669982",

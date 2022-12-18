@@ -26,6 +26,8 @@ def run(update):
 
     quotetime = datetime.time(hour=12, tzinfo=zoneinfo.ZoneInfo("MST"))
     avgtimelst = []
+    countingcount = 0
+    countinguser = ""
 
     token = open("config/TOKEN", "r").read()
     intents = discord.Intents.all()
@@ -41,72 +43,82 @@ def run(update):
         if not dailyquote.is_running():
             dailyquote.start()
 
-    async def once_done(sink: discord.sinks, channel: discord.TextChannel, *args):  # Our voice client already passes these in.
-        recorded_users = [  # A list of recorded users
-            f"<@{user_id}>"
-            for user_id, audio in sink.audio_data.items()
-        ]
-        files = [discord.File(audio.file, f"{user_id}.{sink.encoding}") for user_id, audio in sink.audio_data.items()]  # List down the files.
-        with wave.open("test.wav","wb") as w:
-            w.setnchannels(2)
-            w.setsampwidth(2)
-            w.setframerate(48000)
-            w.writeframes(b"".join([audio.file.read() for audio in sink.audio_data.values()]))
-    class WaveSink(discord.sinks.WaveSink): 
+    # async def once_done(sink: discord.sinks, channel: discord.TextChannel, *args):  # Our voice client already passes these in.
+    #     recorded_users = [  # A list of recorded users
+    #         f"<@{user_id}>"
+    #         for user_id, audio in sink.audio_data.items()
+    #     ]
+    #     files = [discord.File(audio.file, f"{user_id}.{sink.encoding}") for user_id, audio in sink.audio_data.items()]  # List down the files.
+    #     with wave.open("test.wav","wb") as w:
+    #         w.setnchannels(2)
+    #         w.setsampwidth(2)
+    #         w.setframerate(48000)
+    #         w.writeframes(b"".join([audio.file.read() for audio in sink.audio_data.values()]))
+    # class WaveSink(discord.sinks.WaveSink): 
     
-        @Filters.container  
-        def write(self, data, user):  
-            if user not in self.audio_data:
-                file = io.BytesIO()
-                self.audio_data.update({user: AudioData(file)})
+    #     @Filters.container  
+    #     def write(self, data, user):  
+    #         if user not in self.audio_data:
+    #             file = io.BytesIO()
+    #             self.audio_data.update({user: AudioData(file)})
 
-            file = self.audio_data[user] 
-            file.write(data)
-            print(data)
-            print(type(data),"data")
-            print(type(file),"file")
+    #         file = self.audio_data[user] 
+    #         file.write(data)
+    #         print(data)
+    #         print(type(data),"data")
+    #         print(type(file),"file")
             
 
-    @bot.slash_command(description="aaa")
-    async def eee(ctx):
-        for guild in bot.guilds:
-            await ctx.respond(guild.id)
+    # @bot.slash_command(description="aaa")
+    # async def eee(ctx):
+    #     for guild in bot.guilds:
+    #         await ctx.respond(guild.id)
 
-    @bot.slash_command(name="play")
-    async def play(ctx, link: str):
-            channel = ctx.author.voice.channel
-            vc = await channel.connect()
-            ytdl_format_options = {
-            'format': 'bestaudio/best',
-            'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-            'restrictfilenames': True,
-            'noplaylist': True,
-            'nocheckcertificate': True,
-            'ignoreerrors': False,
-            'logtostderr': False,
-            'quiet': True,
-            'no_warnings': True,
-            'default_search': 'auto',
-            'source_address': '0.0.0.0',
-            }
-            with yt_dlp.YoutubeDL(ytdl_format_options) as ydl:
-                    info_dict = ydl.extract_info(link, download=False)
-                    video_url = info_dict.get("url", None)
-                    video_id = info_dict.get("id", None)
-                    video_title = info_dict.get('title', None)
-            vc.play(discord.FFmpegPCMAudio(video_url))
-            vc.start_recording(WaveSink(), once_done, ctx.channel)
-            #vc.start_recording(discord.sinks.WaveSink(), once_done, ctx.channel)
-            await asyncio.sleep(10)
-            vc.stop_recording()
-            await vc.disconnect()
+    # @bot.slash_command(name="play")
+    # async def play(ctx, link: str):
+    #         channel = ctx.author.voice.channel
+    #         vc = await channel.connect()
+    #         ytdl_format_options = {
+    #         'format': 'bestaudio/best',
+    #         'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    #         'restrictfilenames': True,
+    #         'noplaylist': True,
+    #         'nocheckcertificate': True,
+    #         'ignoreerrors': False,
+    #         'logtostderr': False,
+    #         'quiet': True,
+    #         'no_warnings': True,
+    #         'default_search': 'auto',
+    #         'source_address': '0.0.0.0',
+    #         }
+    #         with yt_dlp.YoutubeDL(ytdl_format_options) as ydl:
+    #                 info_dict = ydl.extract_info(link, download=False)
+    #                 video_url = info_dict.get("url", None)
+    #                 video_id = info_dict.get("id", None)
+    #                 video_title = info_dict.get('title', None)
+    #         vc.play(discord.FFmpegPCMAudio(video_url))
+    #         vc.start_recording(WaveSink(), once_done, ctx.channel)
+    #         #vc.start_recording(discord.sinks.WaveSink(), once_done, ctx.channel)
+    #         await asyncio.sleep(10)
+    #         vc.stop_recording()
+    #         await vc.disconnect()
     @bot.event
-    async def on_message(message):
+    async def on_message(message,countingcount,countinguser):
         # defining variables
         msg = str(message.content)
         channel = str(message.channel.id)
         server = message.guild.id
         author = str(message.author)
+
+        #counting
+        if config("countingenabled"):# == "true" and channel == config("countingchannel") and msg[0] == type(int):
+            print("yesssssss")
+            if countingcount != msg+1 or countinguser == author:
+                print("noooooo")
+                message.channel.send("counting reset to 1")
+            else:
+                countingcount = msg
+                countinguser = author              
 
         # reply to bots
         if message.author.bot and config("replytobot") == "false":
