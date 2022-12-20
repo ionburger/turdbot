@@ -1,35 +1,36 @@
-# Copyright (c) 2022, Ian Burgess
-# All rights reserved.
-#
-# This source code is licensed under the GPLv3 license. A copy of this license can be found in the LICENSE file in the root directory of this source tree.
+import sqlite3 as sql
+serverid = "default2"
 
-import shelve
-server = "default"
-def config(value,db="config",serverid=server,mode="r"):
-    default = {
-        "replytobot":"false",
-        "triggerbotenabled":"true",
-        "quotebotenabled":"true",
-        "countingenabled":"true",
-        "countingchannel":"1052690164989829150",
-        "triggerbottriggers":["hello","hi","howdy"],
-        "triggerbotreplys":["hello","hi","lol"],
-        "quotequeue":"1010042640508669982",
-        
-        
-    }
-    try:
-        with shelve.open("config/bot.shlf",writeback=True) as data:
-            if mode == "r":
-                try:
-                    return data[db][serverid][value]
-                except:
-                    return default[value]
-            elif mode == "w":
-                data[db][serverid] = value
-                return("success")
-            else:
-                print("error")
-    except:
-        print("a storage error occured so default was returned")
-        return default[value]
+conn = sql.connect('../data/storage.db')
+cur = conn.cursor()
+print("Opened database successfully")
+def storage(module,key,value="",conn=conn,cur=cur,serverid=serverid,mode="r"):
+    read = (cur.execute("select "+module+" from config where serverid=?",(serverid,)).fetchall())[0][0].split(",")  
+    data = {}
+    for i in range(len(read)):
+        data[read[i].split(":")[0]] = read[i].split(":")[1]
+    if key not in data:
+        readd = (cur.execute("select "+module+" from config where serverid=?",("default",)).fetchall())[0][0].split(",")  
+        datad = {}
+        for i in range(len(readd)):
+            datad[readd[i].split(":")[0]] = readd[i].split(":")[1]
+        data[key] = datad[key]
+    if mode == "r":
+       return data[key]
+    elif mode == "w":
+        data[key] = value
+        write = ""
+        i = 0
+        for k,v in data.items():
+            if i != 0:
+                write += ","
+            write += k+":"+v
+            i += 1
+        cur.execute("update config set "+module+" = ? where serverid = ?",(write,serverid))
+        return True
+    else:
+        return False
+print(storage("quotequeue","joe"))
+conn.commit()
+
+conn.close
