@@ -1,7 +1,6 @@
 import sqlite3 as sql
-serverid = "default2"
-
-conn = sql.connect('../data/storage.db')
+serverid = "default"
+conn = sql.connect('data/storage.db')
 cur = conn.cursor()
 print("Opened database successfully")
 def storage(module,key,value="",conn=conn,cur=cur,serverid=serverid,mode="r"):
@@ -10,7 +9,7 @@ def storage(module,key,value="",conn=conn,cur=cur,serverid=serverid,mode="r"):
     for i in range(len(read)):
         data[read[i].split(":")[0]] = read[i].split(":")[1]
     if key not in data:
-        readd = (cur.execute("select "+module+" from config where serverid=?",("default",)).fetchall())[0][0].split(",")  
+        readd = (cur.execute("select "+module+" from config where serverid=?",("default",)).fetchall())[0][0].split(",")
         datad = {}
         for i in range(len(readd)):
             datad[readd[i].split(":")[0]] = readd[i].split(":")[1]
@@ -24,13 +23,10 @@ def storage(module,key,value="",conn=conn,cur=cur,serverid=serverid,mode="r"):
         for k,v in data.items():
             if i != 0:
                 write += ","
-            write += k+":"+v
+            write += k+":"+str(v)
             i += 1
         cur.execute("update config set "+module+" = ? where serverid = ?",(write,serverid))
+        conn.commit()
         return True
     else:
         return False
-print(storage("quotequeue","joe"))
-conn.commit()
-
-conn.close
