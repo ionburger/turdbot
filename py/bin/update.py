@@ -1,4 +1,4 @@
-from storage import storage
+from py.bin.old import storage
 import os
 import shutil
 import wget
