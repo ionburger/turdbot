@@ -1,7 +1,8 @@
 import sqlite3 as sql
-class storage:
+class Data:
     def __init__(self,serverid):
         self.serverid = serverid
+        self.db = "data"
         self.conn = sql.connect('data/storage.db')
         self.cur = self.conn.cursor()
 
@@ -34,3 +35,11 @@ class storage:
         self.cur.execute("update config set "+module+" = ? where serverid = ?",(write,self.serverid))
         self.conn.commit()
         return True
+
+class Config(Data):
+    def __init__(self,serverid):
+        self.serverid = serverid
+        self.db = "config"
+        self.conn = sql.connect('data/storage.db')
+        self.cur = self.conn.cursor()
+

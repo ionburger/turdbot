@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from bin.storage import storage
+from bin.storage import *
 
 class Counting(commands.Cog):
     def __init__(self, bot):
@@ -8,9 +8,8 @@ class Counting(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        st = storage(message.guild.id)
-        serverid = str(message.guild.id)
-        if message.author.bot or str(message.channel.id) != st.read("counting","countingchannel",) or not message.content.isnumeric():
+        st = Config(str(message.guild.id))
+        if message.author.bot == True and st.read("misc","replytobot") == "false" or st.read("counting","enabled") == "false" or str(message.channel.id) != st.read("counting","countingchannel",) or not message.content.isnumeric():
             print("return")
             return
         print(st.read("counting","countingcount"))
