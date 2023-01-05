@@ -9,7 +9,7 @@ class Counting(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         st = Config(str(message.guild.id))
-        if message.author.bot == True and st.read("misc","replytobot") == "false" or st.read("counting","enabled") == "false" or str(message.channel.id) != st.read("counting","countingchannel",) or not message.content.isnumeric():
+        if message.author.bot == Truer or st.read("counting","enabled") == "false" or str(message.channel.id) != st.read("counting","countingchannel",) or not message.content.isnumeric():
             print("return")
             return
         print(st.read("counting","countingcount"))
