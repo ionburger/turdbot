@@ -12,20 +12,20 @@ class Triggers(commands.Cog):
         dt = Data(str(message.guild.id))
         st = Config(str(message.guild.id))
 
-        if message.author.bot == True and st.read("misc","replytobot") == "false" or st.read("triggers","enabled") == "false" or str(message.channel.id) in st.read("triggers","channelblacklist",).split("."):
-            print("return")
-            return
+        # if message.author.bot == True and st.read("misc","replytobot") == "false" or st.read("triggers","enabled") == "false" or str(message.channel.id) in st.read("triggers","channelblacklist",).split("."):
+        #     print("return")
+        #     return
+        print(message.content)
+        # print("triggers")
+        # triggers = dt.read("triggers","triggers").split("/./")
+        # replys = dt.read("triggers","replys").split("/./")
 
-        print("triggers")
-        triggers = dt.read("triggers","triggers").split("/./")
-        replys = dt.read("triggers","replys").split("/./")
 
-
-        if st.read("triggers","mode") == "normal":
-            for trigger in triggers:
-                if trigger in message.content:
-                    rand = randint(0, len(replys))-1
-                    await message.channel.send(replys[rand])
+        # if st.read("triggers","mode") == "normal":
+        #     for trigger in triggers:
+        #         if trigger in message.content:
+        #             rand = randint(0, len(replys))-1
+        #             await message.channel.send(replys[rand])
        
        
        
