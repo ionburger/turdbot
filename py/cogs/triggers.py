@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
-from random import randint
-from bin.storage import *
+import random
+from bin.storage import Config
 
 class Triggers(commands.Cog):
     def __init__(self, bot):
@@ -9,23 +9,14 @@ class Triggers(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
-        dt = Data(str(message.guild.id))
-        st = Config(str(message.guild.id))
-
-        # if message.author.bot == True and st.read("misc","replytobot") == "false" or st.read("triggers","enabled") == "false" or str(message.channel.id) in st.read("triggers","channelblacklist",).split("."):
-        #     print("return")
-        #     return
-        print(message.content)
-        # print("triggers")
-        # triggers = dt.read("triggers","triggers").split("/./")
-        # replys = dt.read("triggers","replys").split("/./")
-
-
-        # if st.read("triggers","mode") == "normal":
-        #     for trigger in triggers:
-        #         if trigger in message.content:
-        #             rand = randint(0, len(replys))-1
-        #             await message.channel.send(replys[rand])
+        st = Config(message.guild.id,self.bot.db)
+        if message.author.bot == True and st.read("misc","replytobot") == "false" or st.read("triggers","enabled") == "false" or str(message.channel.id) in st.read("triggers","channelblacklist").split("."):
+            return
+        dict = st.read("triggers","triggers")
+        for key in dict.keys():
+            if key in message.content:
+                replys = dict[key].split("/./")
+                await message.channel.send(random.choice(replys))
        
        
        
