@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 #setup
 intents = discord.Intents.all()
-bot = bridge.AutoShardedBot(shard_count=4,shard_ids=[2,3],intents=intents,command_prefix=".")
+bot = bridge.Bot(intents=intents,command_prefix=".")
 config = configparser.ConfigParser()
 config.read("config/config.conf")
 bot.db = MongoClient(config["mongodb"]["host"],int(config["mongodb"]["port"]),username=config["mongodb"]["username"],password=config["mongodb"]["password"])['data']
@@ -20,7 +20,8 @@ bot.load_extension("cogs.counting")
 bot.load_extension("cogs.misc")
 bot.load_extension("cogs.triggers")
 bot.load_extension("cogs.dad")
-bot.load_extension("cogs.quotequeue")
+bot.load_extension("cogs.voice")
+#bot.load_extension("cogs.quotequeue")
 
 
 #logging
