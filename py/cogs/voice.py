@@ -7,9 +7,7 @@ class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def qhandler(self, ctx, error=None):
-        print(ctx.guild.id)
-        st = Config(ctx.guild.id, self.bot.db)
+    def qhandler(error=None,self=None, ctx=None, st=None):
         queue = st.read("voice", "queue").split("/./")
         queue.pop(0)
         st.write("voice", "queue", queue.join("/./"))
@@ -73,6 +71,7 @@ class Voice(commands.Cog):
             'source_address': '0.0.0.0',
             }
         with YoutubeDL(ytdl_format_options) as ydl:
+            st = Config(ctx.guild.id, self.bot.db)
             if link.startswith("https://"):
                 info_dict = ydl.extract_info(link, download=False)
                 video_url = info_dict.get("url", None)
@@ -84,10 +83,9 @@ class Voice(commands.Cog):
                 video_id = info_dict.get("id", None)
                 video_title = info_dict.get('title', None)
         if not ctx.voice_client.is_playing():
-            ctx.voice_client.play(discord.FFmpegPCMAudio(video_url, **ffmpeg_options), after=self.qhandler(self, ctx))
+            ctx.voice_client.play(discord.FFmpegPCMAudio(video_url, **ffmpeg_options), after=self.qhandler(self=self, ctx=ctx, st=st))
             await ctx.respond(f"Now playing: {video_title}")
         else:
-            st = Config(ctx.guild.id, self.bot.db)
             queue = st.read("voice", "queue").split("/./")
             queue.append(info_dict)
             st.write("voice", "queue", queue.join("/./"))

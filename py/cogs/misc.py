@@ -28,6 +28,10 @@ class Misc(commands.Cog):
             self.bot.reload_extension("cogs.misc")
             self.bot.reload_extension("cogs.triggers")
             self.bot.reload_extension("cogs.counting")
+            self.bot.reload_extension("cogs.quotequeue")
+            self.bot.reload_extension("cogs.voice")
+            st = Config(message.guild.id,self.bot.db)
+            st.updateguild()
             await message.channel.send("r")
 
 
