@@ -8,19 +8,21 @@ class Voice(commands.Cog):
         self.bot = bot
 
     def qhandler(error=None,self=None, ctx=None, st=None):
+        queue = (st.read("voice", "queue")).split("/./")
         try:
-            queue = (st.read("voice", "queue")).split("/./")
             queue.pop(0)
-            st.write("voice", "queue", "/./".join(queue))
-        except ValueError:
-            ctx.voice_client.stop()
-            return
+        except:
+            pass
+        st.write("voice", "queue", "/./".join(queue))
         ffmpeg_options = {
             'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
             'options': '-vn'
             }
-        ctx.voice_client.play(discord.FFmpegPCMAudio(queue[0].get("url",None), **ffmpeg_options), after=self.qhandler(self, ctx))
-        ctx.respond(f"Now playing: {queue[0].get('title',None)}")
+        if len(queue) > 0:
+            ctx.voice_client.play(discord.FFmpegPCMAudio(queue[0]), **ffmpeg_options, after=self.qhandler(self, ctx))
+            ctx.respond(f"Now playing: {queue[0]}")
+        else:
+            ctx.voice_client.stop()
 
     @bridge.bridge_command()
     async def join(self, ctx):
@@ -61,7 +63,7 @@ class Voice(commands.Cog):
         if ctx.voice_client is None:
             channel = ctx.author.voice.channel
             await channel.connect()
-        if link == "":
+        if link == "" and ctx.voice_client.is_paused():
             ctx.voice_client.resume()
             return
         if ctx.voice_client.is_paused():
@@ -101,8 +103,9 @@ class Voice(commands.Cog):
             await ctx.respond(f"Now playing: {video_title}")
         else:
             queue = st.read("voice", "queue").split("/./")
-            queue.append(info_dict)
+            queue.append(info_dict.get("url",None))
             st.write("voice", "queue", "/./".join(queue))
+            await ctx.respond(f"Added to queue: {video_title}")
         
     @bridge.bridge_command(alias=["stop"])
     async def pause(self, ctx):
