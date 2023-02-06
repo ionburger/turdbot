@@ -8,6 +8,7 @@ class Voice(commands.Cog):
         self.bot = bot
 
     def qhandler(error=None,self=None, ctx=None, st=None):
+        print("test")
         queue = (st.read("voice", "queue")).split("/./")
         try:
             queue.pop(0)
@@ -21,10 +22,8 @@ class Voice(commands.Cog):
         if len(queue) > 0:
             ctx.voice_client.play(discord.FFmpegPCMAudio(queue[0]), **ffmpeg_options, after=self.qhandler(self, ctx))
             ctx.respond(f"Now playing: {queue[0]}")
-        else:
-            ctx.voice_client.stop()
-
-    @bridge.bridge_command()
+    
+    @bridge.bridge_command(alises=["j"])
     async def join(self, ctx):
         await ctx.defer()
         if ctx.author.voice is None:
@@ -33,7 +32,7 @@ class Voice(commands.Cog):
             channel = ctx.author.voice.channel
             await channel.connect()
         
-    @bridge.bridge_command()
+    @bridge.bridge_command(alises=["l"])
     async def leave(self, ctx):
         await ctx.defer()
         st = Config(ctx.guild.id, self.bot.db)
@@ -43,29 +42,40 @@ class Voice(commands.Cog):
         else:
             await ctx.voice_client.disconnect()
     
-    @bridge.bridge_command()
-    async def play(self, ctx, *, video: str):
+    @bridge.bridge_command(aliases=["p"])
+    async def play(self, ctx, *, video: str=""):
         await ctx.defer()
         args = video.split(" ")
+        providedchannel = False
         channel = ""
         for arg in range(len(args)-1):
             if args[arg] == "-channel" or args[arg] == "-c":
-                channel = discord.utils.get(ctx.guild.channels, name=args.pop(arg+1)).id
+                channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args.pop(arg+1)).id)
+                print(type(channel))
+                print(channel)
                 args.pop(arg)
+                providedchannel = True
                 break
-        if channel != "" and ctx.author.guild_permissions.administrator == False:
+        else:
+            channel = ctx.author.voice.channel
+        
+        link = " ".join(args)
+
+        if providedchannel and ctx.author.guild_permissions.administrator == False:
             await ctx.respond("You do not have permission to specify a channel")
             return
-        link = " ".join(args)
+
         if ctx.author.voice is None and channel == "":
             await ctx.respond("You are not in a voice channel, to specify a channel use `play <link> -channel <channel>`")
             return
+
         if ctx.voice_client is None:
-            channel = ctx.author.voice.channel
             await channel.connect()
+
         if link == "" and ctx.voice_client.is_paused():
             ctx.voice_client.resume()
             return
+
         if ctx.voice_client.is_paused():
             ctx.voice_client.resume()
 
@@ -86,6 +96,7 @@ class Voice(commands.Cog):
             'default_search': 'auto',
             'source_address': '0.0.0.0',
             }
+
         with YoutubeDL(ytdl_format_options) as ydl:
             st = Config(ctx.guild.id, self.bot.db)
             if link.startswith("https://"):
@@ -102,12 +113,13 @@ class Voice(commands.Cog):
             ctx.voice_client.play(discord.FFmpegPCMAudio(video_url, **ffmpeg_options), after=self.qhandler(self=self, ctx=ctx, st=st))
             await ctx.respond(f"Now playing: {video_title}")
         else:
+            print("Added to queue")
             queue = st.read("voice", "queue").split("/./")
             queue.append(info_dict.get("url",None))
             st.write("voice", "queue", "/./".join(queue))
             await ctx.respond(f"Added to queue: {video_title}")
         
-    @bridge.bridge_command(alias=["stop"])
+    @bridge.bridge_command(aliases=["stop"])
     async def pause(self, ctx):
         await ctx.defer()
         if ctx.voice_client is None:
@@ -116,7 +128,7 @@ class Voice(commands.Cog):
             ctx.voice_client.pause()
             await ctx.respond("Paused")
 
-    @bridge.bridge_command()
+    @bridge.bridge_command(alias=["next", "n","s"])
     async def skip(self, ctx):
         await ctx.defer()
         if ctx.voice_client is None:
