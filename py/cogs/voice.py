@@ -1,11 +1,18 @@
 import discord
 from discord.ext import bridge, commands
-from yt_dlp import YoutubeDL
+import wavelink
 from bin.storage import Config
 
 class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await wavelink.NodePool.create_node(bot=self.bot,
+                                            host=self.bot.config["wavelink"]["host"],
+                                            port=self.bot.config["wavelink"]["port"],
+                                            password=self.bot.config["wavelink"]["password"],)
 
     def qhandler(error=None,self=None, ctx=None, st=None):
         print("test")
@@ -43,34 +50,36 @@ class Voice(commands.Cog):
             await ctx.voice_client.disconnect()
     
     @bridge.bridge_command(aliases=["p"])
-    async def play(self, ctx, *, video: str=""):
-        await ctx.defer()
-        args = video.split(" ")
-        providedchannel = False
+    async def play(self, ctx, *, link: str):
+        # await ctx.defer()
+        # args = video.split(" ")
+        # providedchannel = False
         channel = ""
-        for arg in range(len(args)-1):
-            if args[arg] == "-channel" or args[arg] == "-c":
-                channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args.pop(arg+1)).id)
-                print(type(channel))
-                print(channel)
-                args.pop(arg)
-                providedchannel = True
-                break
-        else:
-            channel = ctx.author.voice.channel
+        # for arg in range(len(args)-1):
+        #     if args[arg] == "-channel" or args[arg] == "-c":
+        #         channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args.pop(arg+1)).id)
+        #         print(type(channel))
+        #         print(channel)
+        #         args.pop(arg)
+        #         providedchannel = True
+        #         break
+        # else:
+        #     channel = ctx.author.voice.channel
         
-        link = " ".join(args)
+        # link = " ".join(args)
 
-        if providedchannel and ctx.author.guild_permissions.administrator == False:
-            await ctx.respond("You do not have permission to specify a channel")
-            return
+        # if providedchannel and ctx.author.guild_permissions.administrator == False:
+        #     await ctx.respond("You do not have permission to specify a channel")
+        #     return
 
         if ctx.author.voice is None and channel == "":
             await ctx.respond("You are not in a voice channel, to specify a channel use `play <link> -channel <channel>`")
             return
 
         if ctx.voice_client is None:
-            await channel.connect()
+            if channel == "":
+                channel = ctx.author.voice.channel
+            vc = await channel.connect(cls=wavelink.Player)
 
         if link == "" and ctx.voice_client.is_paused():
             ctx.voice_client.resume()
@@ -78,46 +87,21 @@ class Voice(commands.Cog):
 
         if ctx.voice_client.is_paused():
             ctx.voice_client.resume()
-
-        ffmpeg_options = {
-            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-            'options': '-vn'
-            }
-        ytdl_format_options = {
-            'format': 'bestaudio/best',
-            'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-            'restrictfilenames': True,
-            'noplaylist': True,
-            'nocheckcertificate': True,
-            'ignoreerrors': False,
-            'logtostderr': False,
-            'quiet': True,
-            'no_warnings': True,
-            'default_search': 'auto',
-            'source_address': '0.0.0.0',
-            }
-
-        with YoutubeDL(ytdl_format_options) as ydl:
-            st = Config(ctx.guild.id, self.bot.db)
-            if link.startswith("https://"):
-                info_dict = ydl.extract_info(link, download=False)
-                video_url = info_dict.get("url", None)
-                video_id = info_dict.get("id", None)
-                video_title = info_dict.get('title', None)
-            else:
-                info_dict = ydl.extract_info(f"ytsearch:{link}", download=False)["entries"][0]
-                video_url = info_dict.get("url", None)
-                video_id = info_dict.get("id", None)
-                video_title = info_dict.get('title', None)
-        if not ctx.voice_client.is_playing():
-            ctx.voice_client.play(discord.FFmpegPCMAudio(video_url, **ffmpeg_options), after=self.qhandler(self=self, ctx=ctx, st=st))
-            await ctx.respond(f"Now playing: {video_title}")
-        else:
-            print("Added to queue")
-            queue = st.read("voice", "queue").split("/./")
-            queue.append(info_dict.get("url",None))
-            st.write("voice", "queue", "/./".join(queue))
-            await ctx.respond(f"Added to queue: {video_title}")
+        await vc.play(await wavelink.YouTubeTrack.search(link,return_first=True))
+        await ctx.respond(f"Now playing: {link}")
+        # ffmpeg_options = {
+        #     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+        #     'options': '-vn'
+        #     }
+        # if not ctx.voice_client.is_playing():
+        #     ctx.voice_client.play(discord.FFmpegPCMAudio(video_url, **ffmpeg_options), after=self.qhandler(self=self, ctx=ctx, st=st))
+        #     await ctx.respond(f"Now playing: {video_title}")
+        # else:
+        #     print("Added to queue")
+        #     queue = st.read("voice", "queue").split("/./")
+        #     queue.append(info_dict.get("url",None))
+        #     st.write("voice", "queue", "/./".join(queue))
+        #     await ctx.respond(f"Added to queue: {video_title}")
         
     @bridge.bridge_command(aliases=["stop"])
     async def pause(self, ctx):
@@ -125,7 +109,7 @@ class Voice(commands.Cog):
         if ctx.voice_client is None:
             await ctx.respond("I am not in a voice channel")
         else:
-            ctx.voice_client.pause()
+            await ctx.voice_client.pause()
             await ctx.respond("Paused")
 
     @bridge.bridge_command(alias=["next", "n","s"])
@@ -140,4 +124,3 @@ class Voice(commands.Cog):
 def setup(bot):
     bot.add_cog(Voice(bot))        
 
-    
