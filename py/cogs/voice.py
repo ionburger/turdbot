@@ -6,6 +6,7 @@ from bin.storage import Config
 class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.queue = wavelink.Queue
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -14,22 +15,10 @@ class Voice(commands.Cog):
                                             port=self.bot.config["wavelink"]["port"],
                                             password=self.bot.config["wavelink"]["password"],)
 
-    def qhandler(error=None,self=None, ctx=None, st=None):
-        print("test")
-        queue = (st.read("voice", "queue")).split("/./")
-        try:
-            queue.pop(0)
-        except:
-            pass
-        st.write("voice", "queue", "/./".join(queue))
-        ffmpeg_options = {
-            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-            'options': '-vn'
-            }
-        if len(queue) > 0:
-            ctx.voice_client.play(discord.FFmpegPCMAudio(queue[0]), **ffmpeg_options, after=self.qhandler(self, ctx))
-            ctx.respond(f"Now playing: {queue[0]}")
-    
+    @commands.Cog.listener()
+    async def on_track_end(self, player, track, reason):
+        if not reason == wavelink.TrackEndReason.STOPPED or self.queue.is_empty:
+            player.play(await self.queue.get())
     @bridge.bridge_command(alises=["j"])
     async def join(self, ctx):
         await ctx.defer()
@@ -42,15 +31,13 @@ class Voice(commands.Cog):
     @bridge.bridge_command(alises=["l"])
     async def leave(self, ctx):
         await ctx.defer()
-        st = Config(ctx.guild.id, self.bot.db)
-        st.write("voice", "queue", "")
         if ctx.voice_client is None:
             await ctx.respond("I am not in a voice channel")
         else:
             await ctx.voice_client.disconnect()
     
     @bridge.bridge_command(aliases=["p"])
-    async def play(self, ctx, *, link: str):
+    async def play(self, ctx, *, link: str=""):
         # await ctx.defer()
         # args = video.split(" ")
         # providedchannel = False
@@ -71,7 +58,7 @@ class Voice(commands.Cog):
         # if providedchannel and ctx.author.guild_permissions.administrator == False:
         #     await ctx.respond("You do not have permission to specify a channel")
         #     return
-
+        track = await wavelink.YouTubeTrack.search(link, return_first=True)
         if ctx.author.voice is None and channel == "":
             await ctx.respond("You are not in a voice channel, to specify a channel use `play <link> -channel <channel>`")
             return
@@ -79,46 +66,38 @@ class Voice(commands.Cog):
         if ctx.voice_client is None:
             if channel == "":
                 channel = ctx.author.voice.channel
-            vc = await channel.connect(cls=wavelink.Player)
+            await channel.connect(cls=wavelink.Player)
 
         if link == "" and ctx.voice_client.is_paused():
-            ctx.voice_client.resume()
+            await ctx.voice_client.resume()
             return
 
         if ctx.voice_client.is_paused():
             ctx.voice_client.resume()
-        await vc.play(await wavelink.YouTubeTrack.search(link,return_first=True))
-        await ctx.respond(f"Now playing: {link}")
-        # ffmpeg_options = {
-        #     'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-        #     'options': '-vn'
-        #     }
-        # if not ctx.voice_client.is_playing():
-        #     ctx.voice_client.play(discord.FFmpegPCMAudio(video_url, **ffmpeg_options), after=self.qhandler(self=self, ctx=ctx, st=st))
-        #     await ctx.respond(f"Now playing: {video_title}")
-        # else:
-        #     print("Added to queue")
-        #     queue = st.read("voice", "queue").split("/./")
-        #     queue.append(info_dict.get("url",None))
-        #     st.write("voice", "queue", "/./".join(queue))
-        #     await ctx.respond(f"Added to queue: {video_title}")
         
-    @bridge.bridge_command(aliases=["stop"])
+        if self.queue.is_empty and not ctx.voice_client.is_playing():
+            await ctx.voice_client.play(track)
+            await ctx.respond(f"Now playing: {track.title} by {track.author}\n {track.uri}")
+        
+        else:
+            await self.queue.put(item=track)
+            await ctx.respond(f"Added to queue: {track.title} by {track.author}\n {track.uri}") 
+        
+    @bridge.bridge_command(aliases=["stop","s"])
     async def pause(self, ctx):
         await ctx.defer()
         if ctx.voice_client is None:
             await ctx.respond("I am not in a voice channel")
         else:
             await ctx.voice_client.pause()
-            await ctx.respond("Paused")
 
-    @bridge.bridge_command(alias=["next", "n","s"])
+    @bridge.bridge_command(aliases=["next","n","st"])
     async def skip(self, ctx):
         await ctx.defer()
         if ctx.voice_client is None:
             await ctx.respond("I am not in a voice channel")
         else:
-            ctx.voice_client.stop()
+            ctx.voice_client.play(await self.queue.get())
             await ctx.respond("Skipped")
 
 def setup(bot):

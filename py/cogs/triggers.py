@@ -12,7 +12,7 @@ class Triggers(commands.Cog):
         st = Config(message.guild.id,self.bot.db)
         if message.author.bot == True and st.read("misc","replytobot") == "false" or st.read("triggers","enabled") == "false" or str(message.channel.id) in st.read("triggers","channelblacklist").split("."):
             return
-        dict = st.read("triggers","data")
+        dict = st.read("triggers","triggers")
         for k,v in dict.items():
             if v["mode"] == "lax":
                 if k in message.content:

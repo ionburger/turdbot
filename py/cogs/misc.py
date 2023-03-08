@@ -9,6 +9,17 @@ class Misc(commands.Cog):
     
     @commands.Cog.listener()
     async def on_ready(self):
+        print("""
+_________          _______  ______   ______   _______ _________
+\__   __/|\     /|(  ____ )(  __  \ (  ___ \ (  ___  )\__   __/
+   ) (   | )   ( || (    )|| (  \  )| (   ) )| (   ) |   ) (   
+   | |   | |   | || (____)|| |   ) || (__/ / | |   | |   | |   
+   | |   | |   | ||     __)| |   | ||  __ (  | |   | |   | |   
+   | |   | |   | || (\ (   | |   ) || (  \ \ | |   | |   | |   
+   | |   | (___) || ) \ \__| (__/  )| )___) )| (___) |   | |   
+   )_(   (_______)|/   \__/(______/ |/ \___/ (_______)   )_(   
+                                                               
+        """)
         print(f"Logged in as {self.bot.user}\nPycord version {discord.__version__}\nTurdbot version {self.bot.version}\n")
         for guild in self.bot.guilds:
             st = Config(guild.id,self.bot.db)

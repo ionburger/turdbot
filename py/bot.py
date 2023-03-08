@@ -14,9 +14,8 @@ bot = bridge.Bot(intents=intents,command_prefix=".")
 config = configparser.ConfigParser()
 config.read("config/config.conf")
 bot.config = config
-bot.db = MongoClient(config["mongodb"]["host"],int(config["mongodb"]["port"]),username=config["mongodb"]["username"],password=config["mongodb"]["password"])['data']
+bot.db = MongoClient(config["mongodb"]["host"],int(config["mongodb"]["port"]),username=config["mongodb"]["username"],password=config["mongodb"]["password"])["dev"]
 bot.version = "2.0.0"
-
 bot.load_extension("cogs.counting")
 bot.load_extension("cogs.misc")
 bot.load_extension("cogs.triggers")
