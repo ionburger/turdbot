@@ -6,7 +6,7 @@ from bin.storage import Config
 class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.queue = wavelink.Queue
+        self.queue = wavelink.Queue()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -18,15 +18,18 @@ class Voice(commands.Cog):
     @commands.Cog.listener()
     async def on_track_end(self, player, track, reason):
         if not reason == wavelink.TrackEndReason.STOPPED or self.queue.is_empty:
-            player.play(await self.queue.get())
+            await player.play(self.queue.get())
+
     @bridge.bridge_command(alises=["j"])
-    async def join(self, ctx):
+    async def join(self, ctx, *, args: str=""):
         await ctx.defer()
-        if ctx.author.voice is None:
+        if ctx.author.voice is None and args == "":
             await ctx.respond("You are not in a voice channel")
+        elif args != "":
+            channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args).id)
+            await channel.connect(cls=wavelink.Player)
         else:
-            channel = ctx.author.voice.channel
-            await channel.connect()
+            await ctx.author.voice.channel.connect(cls=wavelink.Player)
         
     @bridge.bridge_command(alises=["l"])
     async def leave(self, ctx):
@@ -38,27 +41,52 @@ class Voice(commands.Cog):
     
     @bridge.bridge_command(aliases=["p"])
     async def play(self, ctx, *, link: str=""):
-        # await ctx.defer()
-        # args = video.split(" ")
-        # providedchannel = False
-        channel = ""
-        # for arg in range(len(args)-1):
-        #     if args[arg] == "-channel" or args[arg] == "-c":
-        #         channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args.pop(arg+1)).id)
-        #         print(type(channel))
-        #         print(channel)
-        #         args.pop(arg)
-        #         providedchannel = True
-        #         break
-        # else:
-        #     channel = ctx.author.voice.channel
-        
-        # link = " ".join(args)
+        await ctx.defer()
 
-        # if providedchannel and ctx.author.guild_permissions.administrator == False:
-        #     await ctx.respond("You do not have permission to specify a channel")
-        #     return
-        track = await wavelink.YouTubeTrack.search(link, return_first=True)
+        #check for overrides
+        # args = link.split(" ")
+        # print(args[6])
+        # for arg in range(len(args)-1):
+        #     print(arg)
+        #     print(args[arg])
+        #     if args[arg] == "-channel" or args[arg] == "-c":
+        #         channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args[arg+1]).id)
+        #         providedchannel = True
+        #     if args[arg] == "-now" or args[arg] == "-n":
+        #         queueoverride = True
+        #     if args[arg] == "-earrape" or args[arg] == "-e":
+        #         earape = True
+        providedchannel = False
+        queueoverride = False
+        earape = False
+        channel = ""
+        args = link.split(" -")
+        print(args)
+        if len(args) > 1:
+            for arg in range(len(args)):
+                if args[arg].startswith("channel") or args[arg].startswith("c"):
+                    print(args[arg].split(" ")[1])
+                    channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args[arg].split(" ")[1]).id)
+                    print(channel)
+                    providedchannel = True
+                if args[arg].startswith("now") or args[arg].startswith("n"):
+                    queueoverride = True
+                if args[arg].startswith("earrape") or args[arg].startswith("e"):
+                    earape = True
+        track = await wavelink.YouTubeTrack.search(args[0], return_first=True)
+
+        
+        if providedchannel and ctx.author.guild_permissions.administrator == False:
+            await ctx.respond("You do not have permission to specify a channel")
+            return
+        if queueoverride and ctx.author.guild_permissions.administrator == False:
+            await ctx.respond("You do not have permission to override the queue")
+            return
+        if earape and ctx.author.guild_permissions.administrator == False:
+            await ctx.respond("You do not have permission to earrape")
+            return
+        
+        
         if ctx.author.voice is None and channel == "":
             await ctx.respond("You are not in a voice channel, to specify a channel use `play <link> -channel <channel>`")
             return
@@ -75,12 +103,13 @@ class Voice(commands.Cog):
         if ctx.voice_client.is_paused():
             ctx.voice_client.resume()
         
-        if self.queue.is_empty and not ctx.voice_client.is_playing():
+        if (self.queue.is_empty and not ctx.voice_client.is_playing()) or queueoverride:
+            if earape:
+                ctx.voice_client.filters.set_filter(wavelink.Equalizer(wavelink.Filter.highpass(40, 1), wavelink.Filter.peaking(1000, 10)))
             await ctx.voice_client.play(track)
             await ctx.respond(f"Now playing: {track.title} by {track.author}\n {track.uri}")
-        
         else:
-            await self.queue.put(item=track)
+            self.queue.put(item=track)
             await ctx.respond(f"Added to queue: {track.title} by {track.author}\n {track.uri}") 
         
     @bridge.bridge_command(aliases=["stop","s"])
@@ -90,14 +119,15 @@ class Voice(commands.Cog):
             await ctx.respond("I am not in a voice channel")
         else:
             await ctx.voice_client.pause()
+            await ctx.respond("Paused")
 
-    @bridge.bridge_command(aliases=["next","n","st"])
+    @bridge.bridge_command(aliases=["next","n","sk"])
     async def skip(self, ctx):
         await ctx.defer()
         if ctx.voice_client is None:
             await ctx.respond("I am not in a voice channel")
         else:
-            ctx.voice_client.play(await self.queue.get())
+            await ctx.voice_client.play(self.queue.get())
             await ctx.respond("Skipped")
 
 def setup(bot):
