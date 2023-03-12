@@ -18,7 +18,7 @@ class Voice(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, player, track, reason):
         print("track ended")
-        if not self.queue.is_empty:
+        if not self.queue.is_empty and reason == 'FINISHED':
             await player.play(self.queue.get())
 
     @bridge.bridge_command(alises=["j"])
