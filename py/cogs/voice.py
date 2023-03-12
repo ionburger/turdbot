@@ -16,8 +16,9 @@ class Voice(commands.Cog):
                                             password=self.bot.config["wavelink"]["password"],)
 
     @commands.Cog.listener()
-    async def on_track_end(self, player, track, reason):
-        if not reason == wavelink.TrackEndReason.STOPPED or self.queue.is_empty:
+    async def on_wavelink_track_end(self, player, track, reason):
+        print("track ended")
+        if not self.queue.is_empty:
             await player.play(self.queue.get())
 
     @bridge.bridge_command(alises=["j"])
@@ -42,32 +43,15 @@ class Voice(commands.Cog):
     @bridge.bridge_command(aliases=["p"])
     async def play(self, ctx, *, link: str=""):
         await ctx.defer()
-
-        #check for overrides
-        # args = link.split(" ")
-        # print(args[6])
-        # for arg in range(len(args)-1):
-        #     print(arg)
-        #     print(args[arg])
-        #     if args[arg] == "-channel" or args[arg] == "-c":
-        #         channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args[arg+1]).id)
-        #         providedchannel = True
-        #     if args[arg] == "-now" or args[arg] == "-n":
-        #         queueoverride = True
-        #     if args[arg] == "-earrape" or args[arg] == "-e":
-        #         earape = True
         providedchannel = False
         queueoverride = False
         earape = False
         channel = ""
         args = link.split(" -")
-        print(args)
         if len(args) > 1:
             for arg in range(len(args)):
                 if args[arg].startswith("channel") or args[arg].startswith("c"):
-                    print(args[arg].split(" ")[1])
                     channel = self.bot.get_channel(discord.utils.get(ctx.guild.channels, name=args[arg].split(" ")[1]).id)
-                    print(channel)
                     providedchannel = True
                 if args[arg].startswith("now") or args[arg].startswith("n"):
                     queueoverride = True
@@ -104,8 +88,11 @@ class Voice(commands.Cog):
             ctx.voice_client.resume()
         
         if (self.queue.is_empty and not ctx.voice_client.is_playing()) or queueoverride:
-            if earape:
-                ctx.voice_client.filters.set_filter(wavelink.Equalizer(wavelink.Filter.highpass(40, 1), wavelink.Filter.peaking(1000, 10)))
+            #not implemented
+            #if earape:
+                #print("earrape")
+                #await ctx.voice_client.set_filter(wavelink.Filter(distortion=wavelink.Distortion(sin_offset=2,sin_scale=2,tan_offset=3)),seek=True)
+
             await ctx.voice_client.play(track)
             await ctx.respond(f"Now playing: {track.title} by {track.author}\n {track.uri}")
         else:
@@ -132,4 +119,3 @@ class Voice(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Voice(bot))        
-
