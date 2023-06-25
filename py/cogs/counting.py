@@ -24,5 +24,15 @@ class Counting(commands.Cog):
             await message.channel.send("Wrong number, counting reset to 1")
             st.write("counting","countingcount",0)
             st.write("counting","countinguser","None")
+            
 def setup(bot):
+    """
+    Adds the Counting cog to the bot instance.
+
+    Args:
+        bot (discord.ext.commands.Bot): The bot instance.
+
+    Returns:
+        None
+    """
     bot.add_cog(Counting(bot))
