@@ -1,26 +1,24 @@
-class Config:
-    def __init__(self, serverid,db):
-        self.serverid = str(serverid)
-        self.db = db[str(serverid)]
-        self.default = db['default']
+import pymongo
 
-    def read(self, module, key):
-        return self.db.find_one({'module': module})[key]
+class Storage:
+    def __init__(self, serverid, db):
+        self.serverdb = db[str(serverid)]
+        self.defaultdb = db["default"]
 
-    def write(self, module, key, value):
-        self.db.update_one({'module': str(module)}, {'$set': {str(key): str(value)}}, upsert=True)
-        return True
+    def db(self, module, key, value=None):
+        r = self.serverdb.find_one({"module": module})[key]
+        if value is not None:
+            self.serverdb.update_one({"module": module}, {"$set": {key: value}})
+        return r
     
-    def updateguild(self):
-        for doc in self.default.find():
-            existing_doc = self.db.find_one({"module": doc["module"]})
+    def update_guild(self):
+        for doc in self.defaultdb.find():
+            existing_doc = self.serverdb.find_one({"module": doc["module"]})
             if existing_doc:
                 for key, value in doc.items():
                     if key not in existing_doc:
                         existing_doc[key] = value
-                self.db.replace_one({"module": doc["module"]}, existing_doc)
+                self.serverdb.replace_one({"module": doc["module"]}, existing_doc)
             else:
-                self.db.insert_one(doc)
-
-
-
+                self.serverdb.insert_one(doc)
+                
