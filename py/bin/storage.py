@@ -1,5 +1,3 @@
-import pymongo
-
 class Storage:
     def __init__(self, serverid, db):
         self.serverdb = db[str(serverid)]
@@ -20,5 +18,4 @@ class Storage:
                         existing_doc[key] = value
                 self.serverdb.replace_one({"module": doc["module"]}, existing_doc)
             else:
-                self.serverdb.insert_one(doc)
-                
+                self.serverdb.insert_one(doc)        

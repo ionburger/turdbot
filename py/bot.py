@@ -1,12 +1,30 @@
+import configparser
 import discord
+from discord.ext import bridge
+import discord
+import logging
 
-bot = discord.Bot(
-    help_command="help",
+logging.basicConfig(level=logging.WARNING)
+
+config = configparser.ConfigParser()
+config.read("config/bot.conf")
+
+bot = bridge.Bot(
+    help_command=None,
     command_prefix="!",
     intents=discord.Intents.all(),
     activity=discord.Activity(
-        type=discord.ActivityType.playing,
-        name="with deez nuts",
-    )
+        type=discord.ActivityType.watching,
+        name="you")
 )
-bot.run("OTg2NDA4MjM3Njg5NjMwNzYx.GOWW5z.Engl7UzrUyQkmj0hwQi42U-Z-XQ8CZPuMQRFlU")
+
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    bot.load_extension("cogs.reply")
+    bot.load_extension("cogs.repost")
+    # bot.load_extension("cogs.counting")
+    # bot.load_extension("cogs.test")
+
+
+bot.run(config["MAIN"]["token"])
