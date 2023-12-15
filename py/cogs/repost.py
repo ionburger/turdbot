@@ -1,7 +1,9 @@
 from discord.ext import bridge, commands
 import discord
-import opencv
-from bin.imagematcher import imagematcher
+from bin.storage import storage
+
+#import opencv
+#from bin.imagematcher import imagematcher
 
 class Repost(commands.Cog):
     def __init__(self, bot):
@@ -9,11 +11,13 @@ class Repost(commands.Cog):
     
     @bridge.bridge_command()
     async def repost(self, ctx):
-        referenceimgurl = ctx.channel.fetch_message(ctx.message.reference.message_id).attachments[0].url
-        msgs = await ctx.channel.history(limit=50).flatten()
+        st = storage("test", self.bot.db)
+        #referenceimgurl = ctx.channel.fetch_message(ctx.message.reference.message_id).attachments[0].url
+        msgs = await ctx.channel.history(limit=100).flatten()
+        l = {}
         for msg in msgs:
             for attachment in msg.attachments:
-                if imagematcher(attachment.url, referenceimgurl) < 90:
-                    await ctx.send(attachment.url)
+                l[msg.id] = attachment.url
+        st.db("test", "test", l)
 def setup(bot):
     bot.add_cog(Repost(bot))

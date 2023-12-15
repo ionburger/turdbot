@@ -1,4 +1,4 @@
-class Storage:
+class storage:
     def __init__(self, serverid, db):
         self.serverdb = db[str(serverid)]
         self.defaultdb = db["default"]
