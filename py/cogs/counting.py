@@ -8,8 +8,7 @@ class Counting(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         db = storage(message.guild.id, self.bot.db).db
-        count = int(db('counting', 'count'))
-        print(count, message.content[0])
+        count = int(db('counting', 'count') or 0)
 
         if message.author.bot or message.channel.id != db('counting', 'channel') or not message.content.isdigit():
             return
@@ -30,7 +29,7 @@ class Counting(commands.Cog):
     async def channel(self, ctx):
         db = storage(ctx.guild.id, self.bot.db).db
         db('counting', 'channel', ctx.channel.id)
-        await ctx.send("counting channel set")
+        await ctx.send(f"counting channel set to {db('counting', 'channel')}")
 
         
 

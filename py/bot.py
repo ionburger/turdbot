@@ -27,11 +27,10 @@ async def on_ready():
     print("Logged in as")
     print(bot.user.name)
     print(bot.user.id)
-    print("------")
-    logging.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    for guild in bot.guilds:
-        logging.info(f"Added {guild.name} (ID: {guild.id})")
-        storage(guild.id, bot.db).update_guild()
+    # logging.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    # for guild in bot.guilds:
+    #     logging.info(f"Added {guild.name} (ID: {guild.id})")
+    #     storage(guild.id, bot.db).update_guild()
 
 
 bot.run(env["BOT_TOKEN"])
