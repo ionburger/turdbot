@@ -1,15 +1,11 @@
-import configparser
+from os import environ as env
 import discord
 from discord.ext import bridge
-import discord
 import logging
 from pymongo import MongoClient
+from bin.storage import storage
 
-logging.basicConfig(level=logging.WARNING)
-
-config = configparser.ConfigParser()
-config.read("config/bot.conf")
-
+logging.basicConfig(filename="turdbot.log",level=logging.INFO)
 
 bot = bridge.Bot(
     help_command=None,
@@ -20,17 +16,22 @@ bot = bridge.Bot(
         name="you")
 )
 
+bot.load_extension("cogs.reply")
+bot.load_extension("cogs.counting")
+
+uri = f"mongodb://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@{env['DB_HOST']}/?authSource=admin"
+bot.db = MongoClient(uri)["turdbot"]
+
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    print("Logged in as")
+    print(bot.user.name)
+    print(bot.user.id)
+    print("------")
+    logging.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    for guild in bot.guilds:
+        logging.info(f"Added {guild.name} (ID: {guild.id})")
+        storage(guild.id, bot.db).update_guild()
 
-    bot.load_extension("cogs.reply")
-    bot.load_extension("cogs.repost")
-    # bot.load_extension("cogs.counting")
-    # bot.load_extension("cogs.test")
 
-    
-    bot.db = MongoClient(config["DATABASE"]["uri"])["main"]
-
-
-bot.run(config["MAIN"]["token"])
+bot.run(env["BOT_TOKEN"])
