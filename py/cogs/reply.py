@@ -5,8 +5,8 @@ class Reply(commands.Cog):
         self.bot = bot
 
     @bridge.bridge_command()
-    async def reply(self, ctx, *args):
-        await ctx.send(args[0:])
+    async def reply(self, ctx, args):
+        await ctx.respond(args)
 
 def setup(bot):
     bot.add_cog(Reply(bot))

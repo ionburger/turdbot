@@ -1,4 +1,0 @@
-py-cord[voice]
-pymongo
-wavelink
-pynacl

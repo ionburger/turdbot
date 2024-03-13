@@ -18,6 +18,7 @@ bot = bridge.Bot(
 
 bot.load_extension("cogs.reply")
 bot.load_extension("cogs.counting")
+bot.load_extension("cogs.settings")
 
 uri = f"mongodb://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@{env['DB_HOST']}/?authSource=admin"
 bot.db = MongoClient(uri)["turdbot"]
