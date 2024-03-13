@@ -1,6 +1,6 @@
 services:
   turdbot:
-    image: "ionburger/turdbot:latest"
+    image: ionburger/turdbot
     restart: always
     container_name: turdbot
     depends_on:
@@ -10,6 +10,19 @@ services:
       - DB_HOST=mongodb
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+  
+  flask:
+    image: ionburger/turdweb
+    restart: always
+    container_name: turdweb
+    depends_on:
+      - mongodb
+    environment:
+      - DB_HOST=mongodb
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5005:5005"
   
   mongodb:
     image: mongo

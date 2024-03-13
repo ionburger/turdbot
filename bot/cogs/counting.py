@@ -1,5 +1,5 @@
 from discord.ext import bridge, commands
-from bin.storage import storage
+from ..bin.storage import storage
 
 class Counting(commands.Cog):
     def __init__(self, bot):
