@@ -1,5 +1,5 @@
 from discord.ext import bridge, commands
-from ..bin.storage import storage
+from bin.storage import storage
 
 class Settings(commands.Cog):
     def __init__(self, bot):
