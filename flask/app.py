@@ -1,6 +1,6 @@
 from flask import Flask
 from pymongo import MongoClient
-from ..bin.storage import storage
+from bin.storage import storage
 from os import environ as env
 import logging
 

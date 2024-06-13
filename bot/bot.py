@@ -3,7 +3,7 @@ import discord
 from discord.ext import bridge
 import logging
 from pymongo import MongoClient
-from ..bin.storage import storage
+from bin.storage import storage
 
 logging.basicConfig(filename="turdbot.log",level=logging.INFO)
 
