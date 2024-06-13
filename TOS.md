@@ -1,4 +1,4 @@
-Turdbot
+# Terms of Service (ToS) for Turdbot
 
 ## 1. Acceptance of Terms
 By using Turdbot, you agree to comply with and be bound by the following Terms of Service. If you do not agree to these terms, you should not use Turdbot.
