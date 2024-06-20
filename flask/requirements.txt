@@ -1,3 +1,0 @@
-granian
-flask
-pymongo

@@ -1,10 +1,32 @@
 class storage:
-    def __init__(self, serverid, db):
-        self.serverdb = db[str(serverid)]
-
-    def db(self, module, key, value=None):
-        try : r = self.serverdb.find_one({"module": module}).get(key) 
-        except AttributeError: r = None
+    def __init__(self, server_id, db):
+        self.server_id = str(server_id)
+        self.db = db
+        self.collection = db['turdbot']  # Replace with your actual collection name
+    
+    async def db(self, module, key=None, value=None):
+        document = await self.collection.find_one({"server_id": self.server_id})
+        
+        if not document:
+            document = {
+                "server_id": self.server_id,
+                "modules": {}
+            }
+        
+        modules = document.get("modules", {})
+        
+        if module not in modules:
+            modules[module] = {}
+        
+        if key is None:
+            return modules.get(module)
+        
         if value is not None:
-            self.serverdb.update_one({"module": module}, {"$set": {key: value}}, upsert=True)
-        return r
+            modules[module][key] = value
+            await self.collection.update_one(
+                {"server_id": self.server_id},
+                {"$set": {"modules": modules}},
+                upsert=True
+            )
+        
+        return modules[module].get(key)

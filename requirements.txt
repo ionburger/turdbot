@@ -1,3 +1,4 @@
 py-cord[audio]
 pymongo
 PyNaCl
+motor
