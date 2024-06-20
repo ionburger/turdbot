@@ -12,3 +12,7 @@ class Misc(commands.Cog):
     @bridge.bridge_command()
     async def version(self, ctx):
         await ctx.send(self.bot.version)
+
+
+def setup(bot):
+    bot.add_cog(Misc(bot))

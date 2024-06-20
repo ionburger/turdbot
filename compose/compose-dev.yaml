@@ -1,0 +1,39 @@
+services:
+  turdbot:
+    image: ionburger/turdbot
+    restart: always
+    container_name: turdbot
+    depends_on:
+      - mongodb
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - DB_HOST=mongodb
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ../:/app
+  
+  flask:
+    image: ionburger/turdweb
+    restart: always
+    container_name: turdweb
+    depends_on:
+      - mongodb
+    environment:
+      - DB_HOST=mongodb
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5005:5005"
+  
+  mongodb:
+    image: mongo
+    restart: always
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - ${DB_LOCATION}:/data/db

@@ -2,9 +2,9 @@ class storage:
     def __init__(self, server_id, db):
         self.server_id = str(server_id)
         self.db = db
-        self.collection = db['turdbot']  # Replace with your actual collection name
+        self.collection = db['turdbot']
     
-    async def db(self, module, key=None, value=None):
+    async def store(self, module, key=None, value=None):
         document = await self.collection.find_one({"server_id": self.server_id})
         
         if not document:
