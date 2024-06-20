@@ -29,7 +29,7 @@ class Counting(commands.Cog):
     async def channel(self, ctx):
         store = storage(ctx.guild.id, self.bot.db).store
         await store('counting', 'channel', ctx.channel.id)
-        await ctx.send(f"counting channel set to {store('counting', 'channel')}")
+        await ctx.send(f"counting channel set to {await store('counting', 'channel')}")
     
     @bridge.bridge_command()
     async def setcount(self, ctx, args):

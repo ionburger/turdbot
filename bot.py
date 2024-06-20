@@ -13,22 +13,14 @@ bot = bridge.Bot(
         name="you")
 )
 
-bot.load_extension("cogs.triggers")
+# bot.load_extension("cogs.triggers")
 bot.load_extension("cogs.counting")
-bot.load_extension("cogs.settings")
+# bot.load_extension("cogs.settings")
 bot.load_extension("cogs.misc")
 
 uri = f"mongodb://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@{env['DB_HOST']}/?authSource=admin"
 bot.db = MongoClient(uri)["turdbot"]
 
-bot.version = "4.0.0ALPHA"
-
-@bot.event
-async def on_ready():
-    print("Logged in as")
-    print(bot.user.name)
-    print(bot.user.id)
-    print(bot.version)
-    print("------")
+bot.version = "4.5.0BETA"
 
 bot.run(env["BOT_TOKEN"])

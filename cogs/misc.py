@@ -12,6 +12,16 @@ class Misc(commands.Cog):
     @bridge.bridge_command()
     async def version(self, ctx):
         await ctx.send(self.bot.version)
+    
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Logged in as")
+        print(self.bot.user.name)
+        print(self.bot.user.id)
+        print(self.bot.version)
+        print("------")
+
+
 
 
 def setup(bot):
