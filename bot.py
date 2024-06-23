@@ -22,6 +22,6 @@ bot.load_extension("cogs.misc")
 uri = f"mongodb://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@{env['DB_HOST']}/?authSource=admin"
 bot.db = MongoClient(uri)["turdbot"]
 
-bot.version = "4.5.0BETA"
+bot.version = "4.5.0"
 
 bot.run(env["BOT_TOKEN"])
