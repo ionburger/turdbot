@@ -8,6 +8,9 @@ class Settings(commands.Cog):
     @bridge.bridge_group(aliases=["set", "s"], invoke_without_command=True)
     async def settings(self, ctx):
         await ctx.respond("invalid command, see !help settings for more info")
+    
+    @settings.command()
+    
 
 
 

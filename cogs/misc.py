@@ -22,7 +22,5 @@ class Misc(commands.Cog):
         print("------")
 
 
-
-
 def setup(bot):
     bot.add_cog(Misc(bot))
