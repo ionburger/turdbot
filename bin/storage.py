@@ -21,7 +21,7 @@ class storage:
         if key is None:
             return modules.get(module)
         
-        else:
+        if value is not None:
             modules[module][key] = value
             await self.collection.update_one(
                 {"server_id": self.server_id},

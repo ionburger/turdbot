@@ -1,6 +1,7 @@
 from discord.ext import bridge, commands
 from bin.storage import storage
 
+
 class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

@@ -15,13 +15,14 @@ bot = bridge.Bot(
 )
 
 # bot.load_extension("cogs.triggers")
-bot.load_extension("cogs.counting")
-bot.load_extension("cogs.settings")
-bot.load_extension("cogs.misc")
+#bot.load_extension("cogs.counting")
+#bot.load_extension("cogs.settings")
+#bot.load_extension("cogs.misc")
+#bot.load_extension("cogs.voice")
 
 uri = f"mongodb://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@{env['DB_HOST']}/?authSource=admin"
 bot.db = MongoClient(uri)["turdbot"]
 
-bot.version = "4.5.0"
+bot.version = "5.0.0ALPHA"
 
 bot.run(env["BOT_TOKEN"])
