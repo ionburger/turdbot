@@ -21,6 +21,9 @@ class Misc(commands.Cog):
         print(self.bot.version)
         print("------")
 
-
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author.id == 768214000798138419:
+            await message.add_reaction('🥚')
 def setup(bot):
     bot.add_cog(Misc(bot))
